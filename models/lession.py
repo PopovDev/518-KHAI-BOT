@@ -1,6 +1,8 @@
-from dataclasses import dataclass
+from math import fabs
+from mongoengine import *
 
-@dataclass
-class Lession:
-    name: str
+
+class Lessions(EmbeddedDocument):
+    title = StringField(max_length=100, required=True)
+    link = StringField(max_length=100, required=False)
     

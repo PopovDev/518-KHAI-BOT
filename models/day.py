@@ -1,7 +1,9 @@
-from models.lession import Lession
-from dataclasses import dataclass
+from models.lession import Lessions
 
-@dataclass
-class Day():
-    name: str
-    lessions: list[Lession]
+from mongoengine import *
+
+
+class Days(Document):
+    num = IntField(required=True, primary_key=True)
+    name = StringField(max_length=30, required=True)
+    lessions= ListField(EmbeddedDocumentField(Lessions))

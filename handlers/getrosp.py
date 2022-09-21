@@ -1,7 +1,8 @@
 from aiogram import Router
 from aiogram.types import Message
-from dbaccess import state
 import datetime
+
+from models.day import Days
 
 router = Router()
 
@@ -9,9 +10,10 @@ router = Router()
 @router.message(commands=['getrosp'])
 async def message_with_text(message: Message):
     day = datetime.datetime.today().weekday()
-    td = state.days[day]
-    msg = f"Сегодня: <b>{td.name}</b>\n"
-    for i,g in enumerate(td.lessions):
-        msg+=f"{i+1}. {g.name}\n"
+    td = Days.objects(num=day).first()
+    print(td)
+    msg = f"День: <b>{td.name}</b>\n"
+    for i in range(4):
+        msg += f"<b>{i}</b> {td.lessions[i].title}\n"
 
     await message.answer(msg, parse_mode="HTML")

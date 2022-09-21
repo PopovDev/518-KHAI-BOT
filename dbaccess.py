@@ -1,32 +1,23 @@
-from pymongo import MongoClient
+from mongoengine import *
 from config import MONGO_STR
 
-from models.day import Day
-from models.lession import Lession
-from models.state import State
+from models.day import Days
+from models.lession import Lessions
 
-client = MongoClient(MONGO_STR)
+client = connect(host=MONGO_STR, db = 'KHAI_BOT')
 
 
-def load_state() -> State:
-    state = State()
-    state.days = [
-        Day("Понедельник",[
-            Lession("1"),
-            Lession("2"),
-            Lession("3"),
-            Lession("4"),
-        ]),
-        Day("Вторник",[]),
-        Day("Среда",[
-            Lession("1"),
-            Lession("2"),
-            Lession("3"),
-            Lession("4"),
-        ]),
-        Day("Четверг",[]),
-        Day("Пятника",[])
-    ]
-    return state
+def init_days():
+    if Days.objects.count() !=5:
+        Days(num=0, name='Понедельник').save()
+        Days(num=1, name='Вторник').save()
+        Days(num=2, name='Среда').save()
+        Days(num=3, name='Четверг').save()
+        Days(num=4, name='Пятница').save()
+        #add lessions
+        for day in Days.objects:
+            for i in range(4):
+                day.lessions.append(Lessions(title='Пусто'))
+            day.save()
 
-state = load_state()
+init_days()
