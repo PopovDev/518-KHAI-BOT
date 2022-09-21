@@ -1,37 +1,21 @@
-
-from aiogram import Bot, types
-from aiogram.contrib.middlewares.logging import LoggingMiddleware
-from aiogram.dispatcher import Dispatcher
-from aiogram.utils.executor import start_webhook
+from aiogram import Bot, Dispatcher, types
+import asyncio
+from handlers import start
 import logging
-
-from config import BOT_KEY, WEBAPP_HOST, WEBAPP_PORT, WEBHOOK_PATH, WEBHOOK_URL
-
-bot = Bot(token=BOT_KEY)
-dp = Dispatcher(bot)
+from config import BOT_KEY
 
 
-async def on_startup(dispatcher):
-    await bot.set_webhook(WEBHOOK_URL, drop_pending_updates=True)
+logging.basicConfig(level=logging.INFO)
 
 
-async def on_shutdown(dispatcher):
-    await bot.delete_webhook()
+async def main():
+    bot = Bot(token=BOT_KEY)
+    dp = Dispatcher()
 
+    dp.include_router(start.router)
 
-@dp.message_handler()
-async def echo(message: types.Message):
-    await message.answer(message.text)
-
+    await bot.delete_webhook(drop_pending_updates=True)
+    await dp.start_polling(bot)
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
-    start_webhook(
-        dispatcher=dp,
-        webhook_path=WEBHOOK_PATH,
-        skip_updates=True,
-        on_startup=on_startup,
-        on_shutdown=on_shutdown,
-        host=WEBAPP_HOST,
-        port=WEBAPP_PORT,
-    )
+   asyncio.run(main())
