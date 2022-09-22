@@ -33,5 +33,5 @@ async def set_day(callback: CallbackQuery):
     nm = int(callback.data.split(':')[1])
     day = Days.objects(num=nm).first()
 
-    await callback.message.edit_text(format_rosp(day.num), reply_markup=get_keyboard(day.num))
+    await callback.message.edit_text(format_rosp(day.num), reply_markup=get_keyboard(day.num), parse_mode='HTML')
     await callback.answer()
