@@ -1,37 +1,61 @@
 from aiogram import Router
-from aiogram.types import Message, InlineKeyboardButton,CallbackQuery
+from aiogram.types import Message, InlineKeyboardButton, CallbackQuery, InlineKeyboardMarkup
 import datetime
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from models.day import Days
+from service import format_lession, format_rosp, get_now
 
 router = Router()
 
 
-@router.message(commands=['getrosp'])
-async def message_with_text(message: Message):
-    day = datetime.datetime.today().weekday()
-    td = Days.objects(num=day).first()
-    print(td)
-    msg = f"День: <b>{td.name}</b>\n"
-    for i in range(4):
-        msg += f"<b>{i+1}</b> {td.lessions[i].title}\n"
-
+def get_keyboard(day_num, lessions):
     builder = InlineKeyboardBuilder()
-    # buttons for lessions with title and callback_data
-    for i in range(4):
-        builder.add(InlineKeyboardButton(
-            text=f"{i+1}", callback_data=f'lession:{day}@{i}'))
-    # buttons for days with title and callback_data
+    for i, (a, b) in enumerate(lessions):
+        if (a.empty and b.empty):
+            continue
+        is_duo = not a.empty and not b.empty
+        if not a.empty:
+            txt = f"{i+1}"
+            if is_duo:
+                txt += ':ч'
+            builder.add(InlineKeyboardButton(
+                text=txt, callback_data=f"lession:{day_num}@{i}@0"))
+        if not b.empty:
+            txt = f"{i+1}"
+            if is_duo:
+                txt += ':з'
+            builder.add(InlineKeyboardButton(
+                text=txt, callback_data=f"lession:{day_num}@{i}@1"))
 
     builder.row()
+    return builder.as_markup()
 
-    await message.answer(msg, parse_mode="HTML", reply_markup=builder.as_markup())
+
+@router.message(commands=['getrosp'])
+async def message_with_text(message: Message):
+    day_num = get_now()[0]
+    day = Days.objects(num=day_num).first()
+
+    await message.answer(format_rosp(day_num), parse_mode='HTML', reply_markup=get_keyboard(day_num, day.lessions))
+
 
 @router.callback_query(lambda callback_query: callback_query.data.startswith('lession:'))
-async def send_random_value(callback: CallbackQuery):
-    
-    day, num = callback.data.split(':')[1].split('@')
+async def open_lession(callback: CallbackQuery):
 
-    await callback.message.answer(f"Вы выбрали {int(num)+1} пару")
+    day_num, lession_num, lession_type = map(
+        int, callback.data.split(':')[1].split('@'))
+    back_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text='Назад', callback_data=f'back:{day_num}')]
+    ])
+
+    text = format_lession(day_num, lession_num, lession_type)
+    await callback.message.edit_text(text, parse_mode='HTML', reply_markup=back_keyboard)
     await callback.answer()
-    await callback.message.delete_reply_markup()
+
+
+@router.callback_query(lambda callback_query: callback_query.data.startswith('back:'))
+async def back(callback: CallbackQuery):
+    day_num = int(callback.data.split(':')[1])
+    lessions = Days.objects(num=day_num).first().lessions
+    await callback.message.edit_text(format_rosp(day_num), parse_mode='HTML', reply_markup=get_keyboard(day_num, lessions))
+    await callback.answer()
