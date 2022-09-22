@@ -1,7 +1,7 @@
 from aiogram import Router
 from aiogram.types import Message, InlineKeyboardButton, CallbackQuery, InlineKeyboardMarkup
 from models.day import Days
-from service import format_lession, format_rosp, get_now
+from service import format_lession, format_rosp, get_now, EDIT_MODE
 
 router = Router()
 
@@ -27,6 +27,9 @@ def get_keyboard_lessions(day_num):
                 text=txt, callback_data=f"lession:{day_num}@{i}@1"))
     buttons.append([InlineKeyboardButton(
         text='Назад', callback_data=f'back_w:{day_num}')])
+    if EDIT_MODE['mode']:
+        buttons.append([InlineKeyboardButton(
+            text='Редактировать', callback_data=f'edit_mode:{day_num}')])
     keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
     return keyboard
 

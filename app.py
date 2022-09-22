@@ -1,8 +1,8 @@
 from aiogram import Bot, Dispatcher, types
 import asyncio
-from handlers import start,getrosp,getweek
+from handlers import start,getrosp,getweek, edit_lession
 import logging
-from config import BOT_KEY, MONGO_STR
+from config import BOT_KEY
 import dbaccess
 
 logging.basicConfig(level=logging.INFO)
@@ -15,6 +15,8 @@ async def main():
 
     dp.include_router(start.router)
     dp.include_router(getrosp.router)
+    dp.include_router(edit_lession.router)
+
     dp.include_router(getweek.router)
 
     await bot.delete_webhook(drop_pending_updates=True)

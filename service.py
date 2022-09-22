@@ -2,6 +2,10 @@ from models.day import Days
 from datetime import datetime, time
 import pytz
 
+EDIT_MODE = {
+    'mode': True
+}
+
 TIMES_DEF = {
     1: (time(8, 00), time(9, 35)),
     2: (time(9, 50), time(11, 25)),
@@ -36,17 +40,21 @@ def format_rosp(day_num):
 
     return text
 
-def format_lession(day_num, num, n):
+
+def format_lession(day_num, num, n, headless=False):
     day = Days.objects(num=day_num).first()
     lession = day.lessions[num][n]
-    text = f"День: <b>{day.name}</b>\n"
-    text += f"Лекция <b>{num+1}</b>:\n\n"
+    text = ""
+    if not headless:
+        text += f"День: <b>{day.name}</b>\n"
+        text += f"Лекция <b>{num+1}</b>:\n\n"
     text += f"<b>{lession.title}</b>\n\n"
     text += f"Преподаватель: <b>{lession.teacher}</b>\n\n"
     text += f"Платформа лекции: <b>{lession.link_platform}</b>\n\n"
     text += f"Ссылка на лекцию: <b>{lession.link}</b>\n\n"
-    
+
     return text
+
 
 def get_now():
     tz = pytz.timezone('Europe/Kiev')
