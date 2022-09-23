@@ -72,33 +72,37 @@ async def edit_lession(callback: CallbackQuery):
     text += f"2. Преподаватель: {lession.teacher}\n\n"
     text += f"3. Платформа: {lession.link_platform}\n\n"
     text += f"4. Ссылка: {lession.link}\n\n"
-    text += f"/set_{day_num}_{lession_num}_{lession_type} (num) (значение)\n"
+    text += f"/set {day_num}{lession_num}{lession_type} (num) (значение)\n"
 
     try:
         await callback.message.edit_text(text, parse_mode='HTML', reply_markup=keyboard, disable_web_page_preview=True)
     except Exception as e:
-        pass
+        print(e)
 
     await callback.answer()
 
-#set_ - set value
-@router.message(lambda message: message.text.startswith('/set_'))
+#set command
+@router.message(commands=['set'])
 async def set_value(message: Message):
     try:
         text = message.text.split(' ')
-        day_num, lession_num, lession_type  = map(int, text[0].split('_')[1:])
+        if len(text) <3:
+            return
+
+        day_num, lession_num, lession_type = map(int, text[1])
         day = Days.objects(num=day_num).first()
         lession = day.lessions[lession_num][lession_type]
-        num = int(text[1])
+        num = int(text[2])
+        print(num)
         match num:
             case 1:
-                lession.title = ' '.join(text[2:])
+                lession.title = ' '.join(text[3:])
             case 2:
-                lession.teacher = ' '.join(text[2:])
+                lession.teacher = ' '.join(text[3:])
             case 3:
-                lession.link_platform = ' '.join(text[2:])
+                lession.link_platform = ' '.join(text[3:])
             case 4:
-                lession.link = ' '.join(text[2:])
+                lession.link = ' '.join(text[3:])
         day.save()
         await message.delete()
     except Exception as e:
