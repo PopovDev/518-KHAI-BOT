@@ -59,7 +59,10 @@ def format_lession(day_num, num, n, headless=False):
 def get_now():
     tz = pytz.timezone('Europe/Kiev')
     now = datetime.now(tz)
-    return now.weekday(), now.time()
+    day = now.weekday()
+    if day == 5 or day == 6:
+        day = 0
+    return day, now.time()
 
 
 def get_nomitaror_denomitaror():
